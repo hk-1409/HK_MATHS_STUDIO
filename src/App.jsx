@@ -80,19 +80,24 @@ function App() {
         let displayOp = "+";
         let text = "";
 
+        let answer = 0;
+
         switch (operation) {
           case "addition":
             displayOp = "+";
             text = `${a} + ${b}`;
+            answer = a + b;
             break;
           case "subtraction":
             displayOp = "-";
             if (a < b) [a, b] = [b, a];
             text = `${a} - ${b}`;
+            answer = a - b;
             break;
           case "multiplication":
             displayOp = "×";
             text = `${a} × ${b}`;
+            answer = a * b;
             break;
           case "division": {
             displayOp = "÷";
@@ -150,6 +155,7 @@ function App() {
             a = dividend;
             b = divisor;
             text = `${a} ÷ ${b}`;
+            answer = quotient;
             break;
           }
           default:
@@ -161,15 +167,18 @@ function App() {
           a,
           b,
           operation: displayOp,
+          answer,
         });
       } else {
         const digits = Number(singleDigits || 1);
         const n = getRandomIntWithDigits(digits, true);
         let text = "";
+        let answer = 0;
 
         switch (operation) {
           case "square":
             text = `${n}²`;
+            answer = n * n;
             break;
           case "squareRoot":
             // make perfect square
@@ -177,10 +186,12 @@ function App() {
               const root = getRandomIntWithDigits(digits, true);
               const val = root * root;
               text = `√${val}`;
+              answer = root;
             }
             break;
           case "cube":
             text = `${n}³`;
+            answer = n * n * n;
             break;
           case "cubeRoot":
             // make perfect cube
@@ -188,6 +199,7 @@ function App() {
               const root3 = getRandomIntWithDigits(digits, true);
               const val3 = root3 * root3 * root3;
               text = `∛${val3}`;
+              answer = root3;
             }
             break;
           default:
@@ -196,6 +208,7 @@ function App() {
         list.push({
           id: `${i + 1}`,
           text,
+          answer,
         });
       }
     }
@@ -287,7 +300,76 @@ function App() {
       });
 
       // Footer
-      const pageCount = doc.internal.pages.length - 1;
+      let pageCount = doc.internal.pages.length - 1;
+      for (let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        doc.setFontSize(8);
+        doc.setTextColor(128, 128, 128);
+        doc.text(
+          `Page ${i} of ${pageCount}`,
+          doc.internal.pageSize.width / 2,
+          doc.internal.pageSize.height - 10,
+          { align: "center" }
+        );
+      }
+
+      // Add Answer Key at the end
+      doc.addPage();
+      doc.setFontSize(18);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor("#46a2b0");
+      doc.text("Answer Key", 14, 30);
+
+      // Format answers in compact format using full width
+      doc.setFontSize(11);
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(0, 0, 0);
+
+      const pageWidth = doc.internal.pageSize.width;
+      const leftMargin = 14;
+      const rightMargin = 14;
+      const usableWidth = pageWidth - leftMargin - rightMargin;
+
+      // Build all answer texts first
+      const answerTexts = questions.map(
+        (q, index) =>
+          `${index + 1}] ${
+            q.answer !== undefined ? q.answer.toString() : "N/A"
+          }`
+      );
+
+      // Use exactly 10 answers per line
+      const answersPerLine = 10;
+
+      let yPosition = 45;
+      let lineStart = 0;
+
+      while (lineStart < answerTexts.length) {
+        const lineAnswers = answerTexts.slice(
+          lineStart,
+          lineStart + answersPerLine
+        );
+        const numAnswers = lineAnswers.length;
+
+        // Divide the full usable width into equal segments for each answer
+        // Each answer will be centered in its segment
+        const segmentWidth = usableWidth / numAnswers;
+
+        // Position each answer in the center of its segment
+        lineAnswers.forEach((text, idx) => {
+          const segmentStart = leftMargin + idx * segmentWidth;
+          const textWidth = doc.getTextWidth(text);
+          // Center the text in its segment
+          const xPosition = segmentStart + segmentWidth / 2 - textWidth / 2;
+          doc.text(text, xPosition, yPosition);
+        });
+
+        yPosition += 7;
+        lineStart += numAnswers;
+      }
+
+      // Update footer with new page count
+      pageCount = doc.internal.pages.length - 1;
       for (let i = 1; i <= pageCount; i++) {
         doc.setPage(i);
         doc.setFontSize(8);
@@ -379,7 +461,76 @@ function App() {
       });
 
       // Footer
-      const pageCount = doc.internal.pages.length - 1;
+      let pageCount = doc.internal.pages.length - 1;
+      for (let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        doc.setFontSize(8);
+        doc.setTextColor(128, 128, 128);
+        doc.text(
+          `Page ${i} of ${pageCount}`,
+          doc.internal.pageSize.width / 2,
+          doc.internal.pageSize.height - 10,
+          { align: "center" }
+        );
+      }
+
+      // Add Answer Key at the end
+      doc.addPage();
+      doc.setFontSize(18);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor("#46a2b0");
+      doc.text("Answer Key", 14, 30);
+
+      // Format answers in compact format using full width
+      doc.setFontSize(11);
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(0, 0, 0);
+
+      const pageWidth = doc.internal.pageSize.width;
+      const leftMargin = 14;
+      const rightMargin = 14;
+      const usableWidth = pageWidth - leftMargin - rightMargin;
+
+      // Build all answer texts first
+      const answerTexts = questions.map(
+        (q, index) =>
+          `${index + 1}] ${
+            q.answer !== undefined ? q.answer.toString() : "N/A"
+          }`
+      );
+
+      // Use exactly 10 answers per line
+      const answersPerLine = 10;
+
+      let yPosition = 45;
+      let lineStart = 0;
+
+      while (lineStart < answerTexts.length) {
+        const lineAnswers = answerTexts.slice(
+          lineStart,
+          lineStart + answersPerLine
+        );
+        const numAnswers = lineAnswers.length;
+
+        // Divide the full usable width into equal segments for each answer
+        // Each answer will be centered in its segment
+        const segmentWidth = usableWidth / numAnswers;
+
+        // Position each answer in the center of its segment
+        lineAnswers.forEach((text, idx) => {
+          const segmentStart = leftMargin + idx * segmentWidth;
+          const textWidth = doc.getTextWidth(text);
+          // Center the text in its segment
+          const xPosition = segmentStart + segmentWidth / 2 - textWidth / 2;
+          doc.text(text, xPosition, yPosition);
+        });
+
+        yPosition += 7;
+        lineStart += numAnswers;
+      }
+
+      // Update footer with new page count
+      pageCount = doc.internal.pages.length - 1;
       for (let i = 1; i <= pageCount; i++) {
         doc.setPage(i);
         doc.setFontSize(8);
